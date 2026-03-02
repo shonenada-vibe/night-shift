@@ -16,7 +16,7 @@ FORMULA_VERSION="${VERSION#v}"
 
 URL="https://github.com/${REPO}/archive/refs/tags/${VERSION}.tar.gz"
 
-echo "Fetching tarball to compute SHA256..." >&2
+# echo "Fetching tarball to compute SHA256..." >&2
 SHA256=$(curl -sL "$URL" | shasum -a 256 | awk '{print $1}')
 
 if [ "$SHA256" = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" ]; then
