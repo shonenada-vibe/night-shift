@@ -1,14 +1,20 @@
-# Night Shift CLI
+<p align="center">
+  <img src="logo.png" width="128" height="128" alt="Night Shift logo">
+</p>
 
-A simple command-line tool to toggle macOS Night Shift immediately.
+<h1 align="center">Night Shift</h1>
+
+<p align="center">A simple tool to toggle macOS Night Shift — from the menu bar or the command line.</p>
 
 ## Installation & Build
 
-This tool uses the private `CoreBrightness` framework found on macOS. To build it, you need to compile the Objective-C source file.
+This tool uses the private `CoreBrightness` framework found on macOS. To build it, compile the Objective-C source file:
 
 ```bash
 clang -framework Foundation -framework Cocoa -o nightshift nightshift.m
 ```
+
+Or download a pre-built binary from the [Releases](https://github.com/shonenada-vibe/night-shift/releases) page.
 
 ## Usage
 
