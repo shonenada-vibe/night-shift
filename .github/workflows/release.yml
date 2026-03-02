@@ -38,6 +38,7 @@ jobs:
 
       - name: Create universal binary
         run: |
+          ls -R
           lipo -create \
             nightshift-x86_64/nightshift-x86_64 \
             nightshift-arm64/nightshift-arm64 \

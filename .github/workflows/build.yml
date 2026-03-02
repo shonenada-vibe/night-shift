@@ -22,6 +22,12 @@ jobs:
             -o nightshift-${{ matrix.arch }} \
             nightshift.m
 
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightshift-${{ matrix.arch }}
+          path: nightshift-${{ matrix.arch }}
+
   universal:
     runs-on: macos-latest
     needs: build
@@ -31,8 +37,15 @@ jobs:
 
       - name: Create universal binary
         run: |
+          ls -R
           lipo -create \
             nightshift-x86_64/nightshift-x86_64 \
             nightshift-arm64/nightshift-arm64 \
             -output nightshift
+
+      - name: Upload universal binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightshift-universal
+          path: nightshift
 
