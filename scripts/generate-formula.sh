@@ -25,7 +25,7 @@ if [ "$SHA256" = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b8
 fi
 
 cat <<EOF
-class NightShift < Formula
+class Nightshift < Formula
   desc "Toggle macOS Night Shift from the menu bar or command line"
   homepage "https://github.com/${REPO}"
   url "${URL}"

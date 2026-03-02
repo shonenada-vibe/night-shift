@@ -2,6 +2,10 @@
 #import <dlfcn.h>
 #import <stdio.h>
 #import <string.h>
+#import <unistd.h>
+#import <sys/file.h>
+
+#define LOCK_FILE "/tmp/nightshift.lock"
 
 @interface CBBlueLightClient : NSObject
 - (BOOL)setEnabled:(BOOL)enabled;
@@ -122,6 +126,18 @@ int run_cli(CBBlueLightClient *client, NSString *action) {
 
 int main(int argc, const char * argv[]) {
     @autoreleasepool {
+        BOOL foreground = NO;
+        NSString *cliAction = nil;
+
+        if (argc > 1) {
+            NSString *arg = [NSString stringWithUTF8String:argv[1]].lowercaseString;
+            if ([arg isEqualToString:@"--foreground"]) {
+                foreground = YES;
+            } else {
+                cliAction = arg;
+            }
+        }
+
         void *handle = dlopen("/System/Library/PrivateFrameworks/CoreBrightness.framework/CoreBrightness", RTLD_LAZY);
         if (!handle) {
             printf("Error: Could not load CoreBrightness framework: %s\n", dlerror());
@@ -136,12 +152,41 @@ int main(int argc, const char * argv[]) {
 
         CBBlueLightClient *client = [[clientClass alloc] init];
 
-        if (argc > 1) {
-            NSString *action = [NSString stringWithUTF8String:argv[1]].lowercaseString;
-            return run_cli(client, action);
+        // CLI mode: on/off
+        if (cliAction) {
+            return run_cli(client, cliAction);
         }
 
-        // No arguments: launch menu bar app
+        // Acquire lock to ensure single instance
+        int lockfd = open(LOCK_FILE, O_CREAT | O_RDWR, 0600);
+        if (lockfd < 0 || flock(lockfd, LOCK_EX | LOCK_NB) != 0) {
+            printf("Night Shift menu bar app is already running.\n");
+            if (lockfd >= 0) close(lockfd);
+            return 1;
+        }
+
+        // Menu bar mode: re-exec detached unless --foreground
+        if (!foreground) {
+            close(lockfd);
+            NSString *execPath = [NSProcessInfo processInfo].arguments[0];
+            NSTask *task = [[NSTask alloc] init];
+            task.executableURL = [NSURL fileURLWithPath:execPath];
+            task.arguments = @[@"--foreground"];
+            task.standardInput = [NSFileHandle fileHandleWithNullDevice];
+            task.standardOutput = [NSFileHandle fileHandleWithNullDevice];
+            task.standardError = [NSFileHandle fileHandleWithNullDevice];
+            NSError *error = nil;
+            [task launchAndReturnError:&error];
+            if (error) {
+                printf("Error: Failed to launch background process: %s\n",
+                       error.localizedDescription.UTF8String);
+                return 1;
+            }
+            printf("Night Shift menu bar app running (pid %d).\n", task.processIdentifier);
+            return 0;
+        }
+
+        // Foreground: run the menu bar app (lock held until exit)
         NSApplication *app = [NSApplication sharedApplication];
         NightShiftController *controller = [[NightShiftController alloc] initWithClient:client];
         app.delegate = controller;
