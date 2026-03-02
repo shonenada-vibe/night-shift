@@ -1,10 +1,11 @@
-name: Build
+name: Release
 
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    tags: ["v*"]
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -22,7 +23,13 @@ jobs:
             -o nightshift-${{ matrix.arch }} \
             nightshift.m
 
-  universal:
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightshift-${{ matrix.arch }}
+          path: nightshift-${{ matrix.arch }}
+
+  release:
     runs-on: macos-latest
     needs: build
     steps:
@@ -36,3 +43,10 @@ jobs:
             nightshift-arm64/nightshift-arm64 \
             -output nightshift
 
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            nightshift
+            nightshift-x86_64/nightshift-x86_64
+            nightshift-arm64/nightshift-arm64
