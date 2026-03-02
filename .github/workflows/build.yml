@@ -1,0 +1,49 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        arch: [x86_64, arm64]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build for ${{ matrix.arch }}
+        run: |
+          clang -framework Foundation -framework Cocoa \
+            -arch ${{ matrix.arch }} \
+            -o nightshift-${{ matrix.arch }} \
+            nightshift.m
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightshift-${{ matrix.arch }}
+          path: nightshift-${{ matrix.arch }}
+
+  universal:
+    runs-on: macos-latest
+    needs: build
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Create universal binary
+        run: |
+          lipo -create \
+            nightshift-x86_64/nightshift-x86_64 \
+            nightshift-arm64/nightshift-arm64 \
+            -output nightshift
+
+      - name: Upload universal binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightshift-universal
+          path: nightshift
