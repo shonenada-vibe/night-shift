@@ -7,20 +7,27 @@ A simple command-line tool to toggle macOS Night Shift immediately.
 This tool uses the private `CoreBrightness` framework found on macOS. To build it, you need to compile the Objective-C source file.
 
 ```bash
-clang -framework Foundation -o nightshift nightshift.m
+clang -framework Foundation -framework Cocoa -o nightshift nightshift.m
 ```
 
 ## Usage
 
-Once compiled, you can use the binary to turn Night Shift on or off.
+### Menu Bar App (default)
 
-### Enable Night Shift
+Run without arguments to launch the menu bar app:
+
 ```bash
-./nightshift on
+./nightshift
 ```
 
-### Disable Night Shift
+A 🌙 (enabled) or ☀️ (disabled) icon appears in the menu bar. Click it to toggle Night Shift or quit.
+
+### CLI Mode
+
+Pass `on` or `off` to toggle directly from the terminal:
+
 ```bash
+./nightshift on
 ./nightshift off
 ```
 
